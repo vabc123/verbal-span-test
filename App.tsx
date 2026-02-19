@@ -3,14 +3,14 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 // --- 基础词库 ---
 const HARDCORE_WORDS = ["结构", "映射", "函数", "关系", "集合", "元素", "子集", "并集", "交集", "补集", "顺序", "等价", "分类", "范畴", "态射", "同构", "群论", "环论", "理想", "域论", "向量", "空间", "线性", "变换", "矩阵", "特征", "同态", "拓扑", "邻域", "连续", "紧致", "流形", "同调", "同伦", "系统", "涌现", "反馈", "稳态", "信息", "熵值", "噪声", "编码", "解码", "逻辑", "算法", "递归", "优化", "梯度"];
 const ENGLISH_WORDS = ["Mapping", "Function", "Set", "Element", "Group", "Ring", "Field", "Space", "Linear", "Matrix", "Topology", "Logic", "System", "Entropy", "Feedback", "Stable"];
-const NOISE_ENG = ["coffee", "leak", "pixel", "void", "stack", "flow", "node", "link"];
+const NOISE_ENG = ["coffee", "leak", "pixel", "void", "stack", "flow", "node", "link", "void", "input", "output"];
 
 type ModuleType = 'MENU' | 'SPAN' | 'NBACK' | 'COMPRESSION' | 'INTERFERENCE' | 'GENERATE';
 
 export default function App() {
   const [activeModule, setActiveModule] = useState<ModuleType>('MENU');
   const [mode, setMode] = useState<'chinese' | 'english' | 'mixed'>('chinese');
-  const [duration, setDuration] = useState(1500);
+  const [duration, setDuration] = useState(1200); // 默认加快到 1.2s
 
   const getPool = () => {
     if (mode === 'chinese') return HARDCORE_WORDS;
@@ -57,7 +57,7 @@ export default function App() {
               <MenuCard icon="📊" title="语言跨度 (Verbal Span)" desc="测量“内存容量”极限。顺序记住并复述。" onClick={() => setActiveModule('SPAN')} border="hover:border-blue-500" />
               <MenuCard icon="🔄" title="双向匹配 (Dual N-Back)" desc="实时动态更新。强制大脑进行特征压缩训练。" onClick={() => setActiveModule('NBACK')} border="hover:border-yellow-500" />
               <MenuCard icon="💎" title="结构压缩 (Compression)" desc="训练主动建模能力。将词群压缩为逻辑结构图。" onClick={() => setActiveModule('COMPRESSION')} border="hover:border-purple-500" />
-              <MenuCard icon="⚡" title="抗干扰抑制 (Interference)" desc="高难度！过滤噪声提取抽象词并倒序。" onClick={() => setActiveModule('INTERFERENCE')} border="hover:border-red-500" />
+              <MenuCard icon="⚡" title="抗干扰抑制 (Interference)" desc="逐个出现！过滤数字/英文噪声，提取抽象词并倒序。" onClick={() => setActiveModule('INTERFERENCE')} border="hover:border-red-500" />
               <MenuCard icon="🌱" title="语义反向生成 (Generation)" desc="训练语义网络调度。根据种子词进行结构化扩张。" onClick={() => setActiveModule('GENERATE')} border="hover:border-emerald-500" />
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function App() {
           {activeModule === 'SPAN' && <SpanModule pool={getPool()} duration={duration} />}
           {activeModule === 'NBACK' && <NBackModule pool={getPool()} duration={duration} />}
           {activeModule === 'COMPRESSION' && <CompressionModule pool={getPool()} />}
-          {activeModule === 'INTERFERENCE' && <InterferenceModule pool={getPool()} />}
+          {activeModule === 'INTERFERENCE' && <InterferenceModule pool={getPool()} duration={duration} />}
           {activeModule === 'GENERATE' && <GenerateModule pool={getPool()} />}
         </div>
       </main>
@@ -83,7 +83,7 @@ const MenuCard = ({ icon, title, desc, onClick, border }: any) => (
   </button>
 );
 
-// --- 修正后的模块 1: Span (增加输入阶段) ---
+// --- 模块 1: Span ---
 const SpanModule = ({ pool, duration }: any) => {
   const [phase, setPhase] = useState<'idle' | 'play' | 'input' | 'result'>('idle');
   const [seq, setSeq] = useState<string[]>([]);
@@ -99,7 +99,7 @@ const SpanModule = ({ pool, duration }: any) => {
     if (phase === 'play') {
       const t = setTimeout(() => {
         if (curr < seq.length - 1) setCurr(curr + 1);
-        else setPhase('input'); // 播放完后进入输入阶段，此时不看答案
+        else setPhase('input');
       }, duration);
       return () => clearTimeout(t);
     }
@@ -107,59 +107,36 @@ const SpanModule = ({ pool, duration }: any) => {
 
   return (
     <div className="text-center">
-      {phase === 'idle' && (
-        <div className="space-y-4">
-          <p className="text-slate-400 text-sm">准备好测试你的硬核词库跨度了吗？</p>
-          <button onClick={start} className="bg-blue-600 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-blue-100">开始测试</button>
-        </div>
-      )}
-      
-      {phase === 'play' && (
-        <div className="text-5xl font-black text-blue-600 animate-pulse tracking-wider">
-          {seq[curr]}
-        </div>
-      )}
-
+      {phase === 'idle' && <button onClick={start} className="bg-blue-600 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-blue-100">开始测试</button>}
+      {phase === 'play' && <div className="text-5xl font-black text-blue-600 animate-pulse">{seq[curr]}</div>}
       {phase === 'input' && (
-        <div className="space-y-6 animate-in fade-in">
-          <h3 className="font-bold text-slate-500">记忆提取：按顺序输入词汇</h3>
-          <textarea 
-            className="w-full p-4 border-2 border-blue-100 rounded-2xl focus:border-blue-500 outline-none text-center text-lg" 
-            rows={3}
-            value={input} 
-            onChange={e => setInput(e.target.value)} 
-            placeholder="词汇之间用空格隔开..."
-            autoFocus
-          />
-          <button onClick={() => setPhase('result')} className="bg-blue-600 text-white px-12 py-3 rounded-xl font-bold">提交校验</button>
+        <div className="space-y-6">
+          <h3 className="font-bold text-slate-500">记忆提取：按顺序输入</h3>
+          <textarea className="w-full p-4 border-2 border-blue-50 rounded-2xl focus:border-blue-500 outline-none text-center text-lg" rows={3} value={input} onChange={e => setInput(e.target.value)} placeholder="词汇空格隔开..." autoFocus />
+          <button onClick={() => setPhase('result')} className="bg-blue-600 text-white px-12 py-3 rounded-xl font-bold">提交</button>
         </div>
       )}
-
       {phase === 'result' && (
-        <div className="space-y-6 animate-in zoom-in-95">
-          <div className="p-4 bg-slate-50 rounded-2xl text-left space-y-2">
-            <p className="text-xs font-bold text-slate-400 uppercase">正确序列:</p>
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-2xl text-left">
+            <p className="text-xs text-slate-400 font-bold">正确序列:</p>
             <p className="text-blue-700 font-bold">{seq.join(' → ')}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase mt-4">你的回答:</p>
-            <p className="text-slate-600 italic">{input || "(空白)"}</p>
           </div>
-          <button onClick={() => setPhase('idle')} className="bg-slate-100 text-slate-500 px-8 py-2 rounded-lg text-sm font-bold">重新开始</button>
+          <button onClick={() => setPhase('idle')} className="text-blue-600 text-sm">重新开始</button>
         </div>
       )}
     </div>
   );
 };
 
-// --- 模块 2: N-Back (增加实时反馈) ---
+// --- 模块 2: N-Back ---
 const NBackModule = ({ pool, duration }: any) => {
-  const [n] = useState(2);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'result'>('idle');
   const [history, setHistory] = useState<any[]>([]);
   const [curr, setCurr] = useState(-1);
-  const [score, setScore] = useState(0);
 
   const next = useCallback(() => {
-    const word = pool[Math.floor(Math.random()*6)]; // 限制在6个词内提高匹配率
+    const word = pool[Math.floor(Math.random()*6)];
     const pos = Math.floor(Math.random()*9);
     setHistory(prev => [...prev, {word, pos}]);
     setCurr(c => c + 1);
@@ -167,36 +144,34 @@ const NBackModule = ({ pool, duration }: any) => {
 
   useEffect(() => {
     if (gameState === 'playing' && curr < 15) {
-      const t = setTimeout(next, duration + 500);
+      const t = setTimeout(next, duration + 300);
       return () => clearTimeout(t);
-    } else if (curr >= 15) {
-      setGameState('result');
-    }
+    } else if (curr >= 15) setGameState('result');
   }, [gameState, curr, next, duration]);
 
   return (
     <div className="text-center">
-      {gameState === 'idle' && <button onClick={() => {setGameState('playing'); setHistory([]); setCurr(-1); next();}} className="bg-yellow-500 text-white px-10 py-3 rounded-full font-bold">开始 Dual 2-Back</button>}
+      {gameState === 'idle' && <button onClick={() => {setGameState('playing'); setHistory([]); setCurr(-1); next();}} className="bg-yellow-500 text-white px-10 py-3 rounded-full font-bold shadow-lg">进入 Dual 2-Back</button>}
       {gameState === 'playing' && history[curr] && (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in zoom-in-95">
           <div className="grid grid-cols-3 gap-2 w-48 mx-auto">
             {[0,1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className={`h-14 w-14 rounded-lg border ${history[curr].pos === i ? 'bg-blue-500' : 'bg-slate-50'}`} />
+              <div key={i} className={`h-14 w-14 rounded-xl border-2 transition-colors ${history[curr].pos === i ? 'bg-blue-500 border-blue-600' : 'bg-slate-50 border-slate-100'}`} />
             ))}
           </div>
-          <div className="text-3xl font-bold text-blue-900">{history[curr].word}</div>
-          <div className="flex gap-4 justify-center">
-            <button className="px-4 py-2 bg-slate-100 rounded-lg text-xs">A (位置匹配)</button>
-            <button className="px-4 py-2 bg-slate-100 rounded-lg text-xs">L (词汇匹配)</button>
+          <div className="text-4xl font-black text-slate-800 tracking-widest">{history[curr].word}</div>
+          <div className="flex gap-4 justify-center text-[10px] text-slate-400 font-bold">
+            <span>KEY A: POSITION</span>
+            <span>KEY L: VERBAL</span>
           </div>
         </div>
       )}
-      {gameState === 'result' && <button onClick={() => setGameState('idle')} className="text-yellow-600 font-bold">训练结束，返回</button>}
+      {gameState === 'result' && <button onClick={() => setGameState('idle')} className="text-yellow-600 font-bold underline">训练结束，返回</button>}
     </div>
   );
 };
 
-// --- 模块 3: 结构压缩 (修正答案显示) ---
+// --- 模块 3: 结构压缩 ---
 const CompressionModule = ({ pool }: any) => {
   const [words, setWords] = useState<string[]>([]);
   const [phase, setPhase] = useState<'idle' | 'show' | 'input' | 'result'>('idle');
@@ -211,34 +186,29 @@ const CompressionModule = ({ pool }: any) => {
   return (
     <div className="text-center space-y-6">
       <h2 className="text-xl font-bold text-purple-600">结构压缩训练</h2>
-      {phase === 'idle' && <button onClick={start} className="bg-purple-600 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-purple-100">获取词群并构思 (10s)</button>}
+      {phase === 'idle' && <button onClick={start} className="bg-purple-600 text-white px-10 py-3 rounded-full font-bold shadow-lg">构思词群图 (10s)</button>}
       {phase === 'show' && <div className="grid grid-cols-2 gap-4 animate-in fade-in">{words.map(w => <div key={w} className="p-4 bg-purple-50 rounded-2xl font-bold text-purple-900">{w}</div>)}</div>}
       {phase === 'input' && (
-        <div className="space-y-4 animate-in slide-in-from-bottom-4">
-          <p className="text-sm text-slate-400">请建立逻辑连接，输入你的结构标签：</p>
-          <input className="w-full p-4 border-2 border-purple-100 rounded-2xl focus:border-purple-500 outline-none" value={labels} onChange={e => setLabels(e.target.value)} placeholder="例如：拓扑性质线 / 线性变换组..." />
+        <div className="space-y-4">
+          <input className="w-full p-4 border-2 border-purple-100 rounded-2xl focus:border-purple-500 outline-none" value={labels} onChange={e => setLabels(e.target.value)} placeholder="输入脑内结构标签..." />
           <button onClick={() => setPhase('result')} className="bg-purple-600 text-white w-full py-3 rounded-xl font-bold">查看原始词群核对</button>
         </div>
       )}
       {phase === 'result' && (
         <div className="space-y-4">
-          <div className="p-4 bg-slate-50 rounded-2xl text-left">
-            <p className="text-xs font-bold text-slate-400 uppercase mb-2">原始词群:</p>
-            <p className="font-bold">{words.join(' · ')}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase mt-4 mb-2">你的压缩定义:</p>
-            <p className="italic text-purple-600">"{labels}"</p>
-          </div>
-          <button onClick={() => setPhase('idle')} className="text-purple-600 text-sm font-bold">开启新一轮</button>
+          <div className="p-4 bg-slate-50 rounded-2xl text-left"><p className="font-bold">{words.join(' · ')}</p><p className="italic text-purple-600 mt-2">"{labels}"</p></div>
+          <button onClick={() => setPhase('idle')} className="text-purple-600 text-sm font-bold">Restart</button>
         </div>
       )}
     </div>
   );
 };
 
-// --- 模块 4: 抗干扰 (修正剧透) ---
-const InterferenceModule = ({ pool }: any) => {
+// --- 模块 4: 抗干扰 (更新：逐个闪现模式) ---
+const InterferenceModule = ({ pool, duration }: any) => {
+  const [phase, setPhase] = useState<'idle' | 'play' | 'input' | 'result'>('idle');
   const [items, setItems] = useState<any[]>([]);
-  const [phase, setPhase] = useState<'idle' | 'show' | 'input' | 'result'>('idle');
+  const [curr, setCurr] = useState(0);
   const [input, setInput] = useState("");
 
   const start = () => {
@@ -246,56 +216,85 @@ const InterferenceModule = ({ pool }: any) => {
     const n = [Math.floor(Math.random()*100), Math.floor(Math.random()*9)];
     const e = [...NOISE_ENG].sort(() => 0.5 - Math.random()).slice(0, 2);
     setItems([...c, ...n, ...e].sort(() => 0.5 - Math.random()));
-    setPhase('show');
-    setTimeout(() => { setPhase('input'); setInput(""); }, 6000);
+    setCurr(0);
+    setPhase('play');
+    setInput("");
   };
+
+  useEffect(() => {
+    if (phase === 'play') {
+      const t = setTimeout(() => {
+        if (curr < items.length - 1) setCurr(curr + 1);
+        else setPhase('input');
+      }, duration);
+      return () => clearTimeout(t);
+    }
+  }, [phase, curr, items, duration]);
 
   const getTarget = () => items.filter(i => typeof i === 'string' && /[\u4e00-\u9fa5]/.test(i)).reverse();
 
   return (
     <div className="text-center">
-      <h2 className="text-xl font-bold text-red-500 mb-6 font-mono tracking-tighter">ANTIGEN-X PROTOCOL</h2>
-      {phase === 'idle' && <button onClick={start} className="bg-red-500 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-red-100">激活抑制测试 (6s)</button>}
-      {phase === 'show' && <div className="grid grid-cols-2 gap-3">{items.map((it, i) => <div key={i} className="p-5 bg-slate-800 text-white rounded-2xl font-bold text-xl shadow-inner">{it}</div>)}</div>}
-      {phase === 'input' && (
-        <div className="space-y-4 animate-in fade-in">
-          <p className="text-sm font-bold text-red-400">过滤噪声，仅倒序输入中文词汇：</p>
-          <input className="w-full p-5 border-2 border-red-100 rounded-2xl text-center text-xl font-bold focus:border-red-500 outline-none" value={input} onChange={e => setInput(e.target.value)} placeholder="词1 词2 词3" />
-          <button onClick={() => setPhase('result')} className="bg-red-500 text-white w-full py-3 rounded-xl font-bold">揭晓目标答案</button>
+      <h2 className="text-xl font-bold text-red-500 mb-6 font-mono tracking-tighter uppercase">Protocol: Suppression</h2>
+      
+      {phase === 'idle' && (
+        <div className="space-y-4">
+          <p className="text-xs text-slate-400">词汇将逐个闪现。丢弃数字/英文，只记中文并倒序。</p>
+          <button onClick={start} className="bg-red-500 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-red-100 transition-transform active:scale-95">激活抑制协议</button>
         </div>
       )}
-      {phase === 'result' && (
-        <div className="space-y-4">
-          <div className="p-4 bg-slate-900 text-white rounded-2xl text-left">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Target Suppression Sequence:</p>
-            <p className="text-red-400 font-black text-xl tracking-widest">{getTarget().join(' ← ')}</p>
+
+      {phase === 'play' && (
+        <div className="h-32 flex items-center justify-center">
+          <div className={`text-5xl font-black transition-all ${typeof items[curr] === 'number' ? 'text-slate-300 scale-75' : /^[a-zA-Z]/.test(items[curr]) ? 'text-slate-400' : 'text-red-600 scale-110'}`}>
+            {items[curr]}
           </div>
-          <button onClick={() => setPhase('idle')} className="text-red-500 text-xs font-bold uppercase tracking-widest">Restart Protocol</button>
+        </div>
+      )}
+
+      {phase === 'input' && (
+        <div className="space-y-6 animate-in fade-in">
+          <p className="text-sm font-bold text-red-500 uppercase tracking-widest">滤除噪声，倒序复述：</p>
+          <input className="w-full p-5 border-2 border-red-50 rounded-2xl text-center text-xl font-bold focus:border-red-500 outline-none transition-colors" value={input} onChange={e => setInput(e.target.value)} placeholder="??? ??? ???" autoFocus />
+          <button onClick={() => setPhase('result')} className="bg-red-500 text-white w-full py-4 rounded-2xl font-bold shadow-lg shadow-red-50">揭晓目标答案</button>
+        </div>
+      )}
+
+      {phase === 'result' && (
+        <div className="space-y-6 animate-in zoom-in-95">
+          <div className="p-6 bg-slate-900 text-white rounded-[2rem] text-left shadow-2xl">
+            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-3 font-bold">Suppression Target:</p>
+            <p className="text-red-400 font-black text-2xl tracking-widest">{getTarget().join(' ← ')}</p>
+            <div className="h-[1px] bg-slate-800 my-4"></div>
+            <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mb-2 font-bold">Your Response:</p>
+            <p className="text-slate-400 italic text-lg">{input || "(NULL)"}</p>
+          </div>
+          <button onClick={() => setPhase('idle')} className="text-red-500 text-xs font-bold uppercase tracking-widest hover:underline">Retry Session</button>
         </div>
       )}
     </div>
   );
 };
 
-// --- 模块 5: 语义生成 (保持简单) ---
+// --- 模块 5: 语义生成 ---
 const GenerateModule = ({ pool }: any) => {
   const [seeds, setSeeds] = useState<string[]>([]);
   const start = () => setSeeds([...pool].sort(() => 0.5 - Math.random()).slice(0, 3));
   useEffect(start, [pool]);
 
   return (
-    <div className="text-center space-y-8">
+    <div className="text-center space-y-8 animate-in fade-in">
       <div className="space-y-2">
-        <h2 className="text-xl font-bold text-emerald-600 italic">Semantic Expansion</h2>
-        <p className="text-xs text-slate-400">基于这三个“种子”构建你的认知语义网</p>
+        <h2 className="text-xl font-bold text-emerald-600 italic">Semantic Network Build</h2>
+        <p className="text-xs text-slate-400">基于“种子词”进行关联扩张</p>
       </div>
       <div className="flex justify-center gap-3">
-        {seeds.map(s => <span key={s} className="px-5 py-2 bg-emerald-50 text-emerald-700 rounded-2xl font-black border-2 border-emerald-100 shadow-sm">{s}</span>)}
+        {seeds.map(s => <span key={s} className="px-5 py-2 bg-emerald-50 text-emerald-700 rounded-2xl font-black border-2 border-emerald-100">{s}</span>)}
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {[1,2,3,4,5,6].map(i => <input key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center text-sm focus:bg-white focus:border-emerald-400 outline-none transition-all shadow-inner" placeholder={`关联概念 ${i}`} />)}
+        {[1,2,3,4,5,6].map(i => <input key={i} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center text-sm focus:bg-white focus:border-emerald-400 outline-none transition-all" placeholder={`关联概念 ${i}`} />)}
       </div>
-      <button onClick={start} className="text-emerald-500 text-sm font-bold hover:underline">获取新种子词</button>
+      <button onClick={start} className="text-emerald-500 text-sm font-bold">New Seeds</button>
     </div>
   );
 };
