@@ -108,10 +108,10 @@ const MenuPanel = ({ onSelect }: { onSelect: (m: ModuleType) => void }) => (
 );
 
 const MenuButton = ({ title, desc, icon, color, onClick }: any) => (
-  <button onClick={onClick} className={`bg-slate-900 p-6 rounded-2xl border ${color} hover:bg-slate-800 transition-all text-left group relative overflow-hidden`}>
-    <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{icon}</div>
-    <h3 className="font-bold text-lg text-slate-100">{title}</h3>
-    <p className="text-slate-500 text-xs mt-2 leading-relaxed">{desc}</p>
+  <button onClick={onClick} className={`bg-white p-6 rounded-2xl border-2 ${color} hover:shadow-lg transition-all text-left group`}>
+    <div className="text-3xl mb-2">{icon}</div>
+    <h3 className="font-bold text-lg text-slate-800">{title}</h3>
+    <p className="text-slate-400 text-xs mt-1">{desc}</p>
   </button>
 );
 
