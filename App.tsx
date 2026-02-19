@@ -25,17 +25,27 @@ export default function App() {
       <main className="max-w-2xl mx-auto mt-8 px-4">
         {activeModule === 'MENU' && <MenuPanel onSelect={setActiveModule} />}
         
-        {/* 模块一 & 二：结构压缩训练 (含限时模式) */}
-        {activeModule === 'COMPRESSION' && (
-          <CompressionModule difficulty={difficulty} />
+        {/* 对应 SPAN 模式 */}
+        {activeModule === 'SPAN' && (
+          <VerbalSpanTest mode={mode} duration={duration} />
         )}
-
-        {/* 模块三：抗干扰混合训练 */}
+      
+        {/* 对应 NBACK 模式 */}
+        {activeModule === 'NBACK' && (
+          <DualNBack mode={mode} duration={duration} />
+        )}
+      
+        {/* 对应 结构压缩 */}
+        {activeModule === 'COMPRESSION' && (
+          <CompressionModule difficulty={{ count: 6, time: 10 }} />
+        )}
+      
+        {/* 对应 抗干扰 */}
         {activeModule === 'INTERFERENCE' && (
           <InterferenceModule />
         )}
-
-        {/* 模块四：反向生成训练 */}
+      
+        {/* 对应 反向生成 */}
         {activeModule === 'GENERATE' && (
           <GenerateModule />
         )}
@@ -53,8 +63,25 @@ export default function App() {
 // ==========================================
 const MenuPanel = ({ onSelect }: { onSelect: (m: ModuleType) => void }) => (
   <div className="grid gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div className="text-slate-500 text-xs font-bold mb-2 tracking-widest uppercase">Select Neural Protocol</div>
+    <div className="text-slate-500 text-xs font-bold mb-2 tracking-widest uppercase px-2">选择训练协议</div>
     
+    {/* 1. 原有的语言跨度 */}
+    <MenuButton 
+      title="语言跨度测试 (Span)" 
+      desc="测量工作记忆的“内存容量”。顺序记住词汇并复述。"
+      icon="📊" color="border-slate-200"
+      onClick={() => onSelect('SPAN')}
+    />
+
+    {/* 2. 原有的双向匹配 */}
+    <MenuButton 
+      title="双向匹配训练 (N-Back)" 
+      desc="通过实时动态更新，强制大脑进行“特征压缩”练习。"
+      icon="🔄" color="border-yellow-500/50"
+      onClick={() => onSelect('NBACK')}
+    />
+
+    {/* 3. 新增：结构压缩 */}
     <MenuButton 
       title="结构压缩训练" 
       desc="训练主动建模能力。将散乱抽象词压缩为逻辑结构图。"
@@ -62,6 +89,7 @@ const MenuPanel = ({ onSelect }: { onSelect: (m: ModuleType) => void }) => (
       onClick={() => onSelect('COMPRESSION')}
     />
 
+    {/* 4. 新增：抗干扰混合 */}
     <MenuButton 
       title="抗干扰混合测试" 
       desc="高难度抑制训练。过滤数字与英文噪声，提取核心抽象词并倒序。"
@@ -69,6 +97,7 @@ const MenuPanel = ({ onSelect }: { onSelect: (m: ModuleType) => void }) => (
       onClick={() => onSelect('INTERFERENCE')}
     />
 
+    {/* 5. 新增：语义反向生成 */}
     <MenuButton 
       title="语义反向生成" 
       desc="训练语义网络调度。根据核心种子词进行结构化扩张。"
