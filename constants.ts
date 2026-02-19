@@ -44,6 +44,9 @@ export const CHINESE_WORDS = [
   "蜗牛", "金鱼", "猫咪", "小狗", "老鹰", "猎豹", "考拉", "猫头鹰", "蝙蝠", "刺猬"
 ];
 
+export const CHINESE_WORDS = ["太阳", "月亮", "星星", "天空", "大海", "森林", "苹果", "香蕉", "电脑", "手机", "书籍", "老师", "学生", "医生", "护士", "城市", "理想", "逻辑", "情绪", "感觉"];
+export const ENGLISH_WORDS = ["Sun", "Moon", "Star", "Sky", "Ocean", "Forest", "Apple", "Banana", "Phone", "Book", "Teacher", "Doctor", "Nurse", "City", "Dream", "Logic", "Mood", "Feel"];
+
 export const ENGLISH_WORDS = [
   "Apple", "Banana", "Cherry", "Dragon", "Eagle", "Forest", "Garden", "Hammer", "Island", "Jungle",
   "Kangaroo", "Lemon", "Mountain", "Nature", "Ocean", "Piano", "Quartz", "River", "Silver", "Tiger",
