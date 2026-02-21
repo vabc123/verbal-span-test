@@ -111,16 +111,20 @@ const SpanModule = ({ pool, duration }: any) => {
     <div className="text-center">
       {phase === 'idle' && (
         <div className="space-y-8 animate-in fade-in">
+          {/* 【修改点3】在这里插入字数调节器 */}
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-700">配置跨度长度</h2>
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">目标抽象词数量</h2>
             <div className="flex items-center justify-center gap-6">
-              <button onClick={() => setLevel(Math.max(2, level - 1))} className="w-10 h-10 rounded-full border-2 border-slate-200 text-xl font-bold hover:bg-slate-50">-</button>
-              <div className="text-4xl font-black text-blue-600 w-16">{level}</div>
-              <button onClick={() => setLevel(level + 1)} className="w-10 h-10 rounded-full border-2 border-slate-200 text-xl font-bold hover:bg-slate-50">+</button>
+              <button onClick={() => setAbstractCount(Math.max(1, abstractCount - 1))} className="w-10 h-10 rounded-full border-2 border-slate-200 text-xl font-bold hover:bg-slate-50 text-slate-400">-</button>
+              <div className="text-4xl font-black text-red-500 w-16">{abstractCount}</div>
+              <button onClick={() => setAbstractCount(abstractCount + 1)} className="w-10 h-10 rounded-full border-2 border-slate-200 text-xl font-bold hover:bg-slate-50 text-slate-400">+</button>
             </div>
-            <p className="text-xs text-slate-400">设置你想要挑战的连贯词汇数量</p>
           </div>
-          <button onClick={start} className="bg-blue-600 text-white px-12 py-3 rounded-full font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95">开始测试</button>
+
+          <div className="space-y-4">
+            <p className="text-xs text-slate-400">词汇逐个出现。滤除数字/英文噪声，只记中文并倒序。</p>
+            <button onClick={start} className="bg-red-500 text-white px-12 py-3 rounded-full font-bold shadow-lg shadow-red-100 transition-transform active:scale-95">激活抑制协议</button>
+          </div>
         </div>
       )}
       
@@ -242,9 +246,10 @@ const InterferenceModule = ({ pool, duration }: any) => {
   const [items, setItems] = useState<any[]>([]);
   const [curr, setCurr] = useState(0);
   const [input, setInput] = useState("");
-
+  const [abstractCount, setAbstractCount] = useState(3);
+  
   const start = () => {
-    const c = [...pool].sort(() => 0.5 - Math.random()).slice(0, 3);
+    const c = [...pool].sort(() => 0.5 - Math.random()).slice(0, abstractCount);
     const n = [Math.floor(Math.random()*100), Math.floor(Math.random()*9)];
     const e = [...NOISE_ENG].sort(() => 0.5 - Math.random()).slice(0, 2);
     setItems([...c, ...n, ...e].sort(() => 0.5 - Math.random()));
