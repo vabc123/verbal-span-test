@@ -21,6 +21,36 @@ const ENGLISH_WORDS = ["Mapping", "Function", "Set", "Element", "Group", "Ring",
 const NOISE_ENG = ["coffee", "leak", "pixel", "void", "stack", "flow", "node", "link", "input", "output", "data"];
 
 type ModuleType = 'MENU' | 'SPAN' | 'NBACK' | 'COMPRESSION' | 'INTERFERENCE' | 'GENERATE';
+type TestMode = 'forward' | 'backward';
+
+
+const analyzeBrainErrors = (expected: string[], actual: string[], original: string[]) => {
+  const reports: string[] = [];
+  
+  actual.forEach((word, index) => {
+    if (!word || word === "") return;
+    
+    if (word === expected[index]) return; // 完全正确
+
+    // 1. 位置偏移分析 (Position Encoding Error)
+    if (original.includes(word)) {
+      const correctIdx = expected.indexOf(word) + 1;
+      reports.push(`“${word}”：Token 存储正确，但位置编码（Position Encoding）失效，应在第 ${correctIdx} 位。`);
+    } 
+    // 2. 幻觉/关联错误 (Hallucination / Association)
+    else {
+      reports.push(`“${word}”：产生“幻觉词”。大脑在精确缓存失效后，根据语义概率自动补全了无关 Token。`);
+    }
+  });
+
+  // 3. 遗漏分析
+  if (actual.length < expected.length) {
+    reports.push(`丢失了 ${expected.length - actual.length} 个 Token。大脑为节省功耗，主动丢弃了低频信息。`);
+  }
+
+  return reports;
+};
+
 
 // ==========================================
 // 主应用入口
@@ -29,7 +59,8 @@ export default function App() {
   const [activeModule, setActiveModule] = useState<ModuleType>('MENU');
   const [mode, setMode] = useState<'chinese' | 'english' | 'mixed'>('chinese');
   const [duration, setDuration] = useState(1200); 
-
+  const [testMode, setTestMode] = useState<TestMode>('forward');
+  
   const getPool = () => {
     if (mode === 'chinese') return HARDCORE_WORDS;
     if (mode === 'english') return ENGLISH_WORDS;
@@ -62,6 +93,19 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+
+                {/* 模式选择：新增 */}
+                <div>
+                  <label className="text-sm font-bold block mb-3">测试逻辑 (Span Mode)：</label>
+                  <div className="flex bg-slate-100 p-1 rounded-2xl">
+                    {(['forward', 'backward'] as const).map(m => (
+                      <button key={m} onClick={() => setTestMode(m)} className={`flex-1 py-2 text-xs font-bold rounded-xl transition ${testMode === m ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}>
+                        {m === 'forward' ? '顺序模式 (Forward)' : '倒序模式 (Backward)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
                 <div>
                   <div className="flex justify-between text-sm font-bold mb-3">
                     <span>刺激时长：</span>
@@ -74,7 +118,7 @@ export default function App() {
 
             {/* 功能卡片 */}
             <div className="grid gap-4">
-              <MenuCard icon="📊" title="语言跨度 (Span)" desc="测量“内存容量”极限。支持自定义词数长度。" onClick={() => setActiveModule('SPAN')} border="hover:border-blue-500" />
+              <MenuCard icon="📊" title="语言跨度 (Span)" desc={`测试大脑容量极限。当前模式：${testMode === 'forward' ? '顺序' : '倒序'}。`} onClick={() => setActiveModule('SPAN')} border="hover:border-blue-500" />
               <MenuCard icon="🔄" title="双向匹配 (N-Back)" desc="实时动态更新。强制大脑进行特征压缩训练。" onClick={() => setActiveModule('NBACK')} border="hover:border-yellow-500" />
               <MenuCard icon="💎" title="结构压缩 (Compression)" desc="训练主动建模能力。将词群压缩为逻辑结构图。" onClick={() => setActiveModule('COMPRESSION')} border="hover:border-purple-500" />
               <MenuCard icon="⚡" title="抗干扰抑制 (Interference)" desc="逐个出现。过滤数字/英文噪声，提取核心抽象词。" onClick={() => setActiveModule('INTERFERENCE')} border="hover:border-red-500" />
